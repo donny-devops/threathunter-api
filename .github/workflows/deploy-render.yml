@@ -4,11 +4,24 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Trigger Render Deploy
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "ERROR: RENDER_DEPLOY_HOOK secret is not set"
+            exit 1
+          fi
+          curl -X POST "$RENDER_DEPLOY_HOOK" \
+            --fail \
+            --silent \
+            --show-error
